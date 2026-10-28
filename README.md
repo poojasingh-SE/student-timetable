@@ -1,4 +1,4 @@
-# Time Table Tracker
+#Student  Timetable Tracker
 
 A student-focused web application designed to organize study schedules, track homework, and monitor study progress.
 ![Dashboard Preview](./public/images/dashboard.png)
