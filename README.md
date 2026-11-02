@@ -2,7 +2,7 @@
 
 A student-focused web application designed to organize study schedules, track homework, and monitor academic progress.
 
-![Dashboard Preview](./public/images/demo.png)
+![Dashboard Preview](./public/images/demo.PNG)
 
 ## Features
 
