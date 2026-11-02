@@ -7,6 +7,11 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\GoogleCalendarToken;
+use App\Models\ClassCompletion;
+use App\Models\HomeworkTask;
 
 class User extends Authenticatable
 {
@@ -47,5 +52,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+
+    public function googleCalendarToken(): HasOne
+    {
+        return $this->hasOne(GoogleCalendarToken::class);
+    }
+    public function classCompletions(): HasMany
+    {
+        return $this->hasMany(ClassCompletion::class);
+    }
+    public function homeworkTasks(): HasMany
+    {
+        return $this->hasMany(HomeworkTask::class);
     }
 }

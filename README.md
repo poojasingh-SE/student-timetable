@@ -1,26 +1,49 @@
-# Student  Timetable Tracker
+# Student Timetable Tracker
 
-A student-focused web application designed to organize study schedules, track homework, and monitor study progress.
-![Dashboard Preview](./public/images/dashboard.png)
+A student-focused web application designed to organize study schedules, track homework, and monitor academic progress.
+
+![Dashboard Preview](./public/images/demo.png)
 
 ## Features
 
-- **User Authentication:** Register and log in using Laravel Breeze.
-- **Google Login:** Authenticate using a Google account through Laravel Socialite.
-- **Student Dashboard:** A modern dashboard with a sidebar and summary cards.
-- **Study Schedule UI:** Display upcoming study sessions.
-- **Homework UI:** Display pending assignments and tasks.
-- **Progress Overview UI:** Visual study-load chart and progress indicator.
-- **Responsive Design:** Tailwind CSS layout for different screen sizes.
+### Authentication
+- User registration and login using Laravel Breeze.
+- Google Login using Laravel Socialite and Google OAuth 2.0.
+- Google Calendar account linking for timetable integration.
+
+### Student Dashboard
+- Responsive dashboard with sidebar and summary cards.
+- Dynamic weekly timetable fetched from Google Calendar.
+- Today's scheduled classes and events.
+- Daily class completion tracking.
+- Study progress overview.
+
+### Homework Management
+- Add homework with title, subject, description, due date, and time.
+- View upcoming homework tasks.
+- Edit existing homework.
+- Delete homework with confirmation.
+- Mark homework as Completed or Pending without page reload using Fetch API.
+- Automatically identify overdue homework.
+- Display homework tasks in priority order: Overdue, Pending, and Completed.
+
+### User Interface
+- Responsive layout using Tailwind CSS.
+- Interactive components using JavaScript.
+- Dynamic dashboard data using Laravel Blade.
 
 ## Tech Stack
 
-- **Backend:** PHP, Laravel
-- **Frontend:** Blade Templates, Tailwind CSS, JavaScript
-- **Authentication:** Laravel Breeze, Laravel Socialite, Google OAuth 2.0
-- **Database:** SQLite (local development)
-- **Build Tools:** Composer, NPM, Vite
-- **Version Control:** Git and GitHub
+| Category | Technologies |
+|---|---|
+| Backend | PHP, Laravel |
+| Frontend | Blade Templates, Tailwind CSS, JavaScript |
+| Authentication | Laravel Breeze, Laravel Socialite |
+| Google Integration | Google OAuth 2.0, Google Calendar API |
+| Database | SQLite |
+| API Requests | Fetch API |
+| Build Tools | Composer, NPM, Vite |
+| Version Control | Git and GitHub |
 
 ## Prerequisites
 
@@ -30,13 +53,15 @@ Install the following before running the project:
 - Composer
 - Node.js and NPM
 - Git
+- Google Cloud account for Google OAuth and Calendar API integration
 
 ## Local Setup
 
 ### 1. Clone the repository
 
 ```bash
-git clone
+git clone 
+cd student-timetable
 ```
 
 ### 2. Install PHP dependencies
@@ -52,19 +77,31 @@ copy .env.example .env
 php artisan key:generate
 ```
 
-Update `.env` with your local database and Google OAuth settings. Never commit real credentials or secret keys.
+Update `.env` with your local database and Google OAuth settings.
 
-### 4. Configure the database
+Never commit real credentials or secret keys.
 
-Set the database connection in `.env` according to your local setup.
+### 4. Configure SQLite Database
 
-For SQLite, create the database file if it does not already exist, then run:
+Create the SQLite database file if it does not exist:
+
+```bash
+type nul > database/database.sqlite
+```
+
+Configure the database connection in `.env`:
+
+```env
+DB_CONNECTION=sqlite
+```
+
+Run migrations:
 
 ```bash
 php artisan migrate
 ```
 
-### 5. Configure Google Login
+### 5. Configure Google OAuth
 
 Set the following environment variables in `.env`:
 
@@ -74,7 +111,11 @@ GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/google/callback
 ```
 
-Use credentials from your Google Cloud OAuth client. Never publish the client secret.
+Configure the OAuth redirect URI in Google Cloud Console.
+
+Enable the Google Calendar API and configure the required Calendar access scopes for timetable integration.
+
+Never publish your Google client secret or access tokens.
 
 ### 6. Install frontend dependencies
 
@@ -97,21 +138,41 @@ In another terminal:
 npm run dev
 ```
 
-Open http://127.0.0.1:8000 in your browser.
+Open the application:
+
+http://127.0.0.1:8000
 
 ## Current Development Status
 
-The authentication flow and initial student dashboard UI have been implemented. Dashboard statistics, schedule entries, homework items, and progress indicators currently use sample data.
+The project currently includes:
 
-Database-backed timetable management, homework tracking, real progress calculations, and notification functionality are planned for future development.
+- Working user registration and login.
+- Google authentication.
+- Google Calendar integration for fetching weekly timetable events.
+- Dynamic dashboard timetable.
+- Class completion tracking.
+- Homework CRUD operations.
+- AJAX-based homework completion status updates.
+- Pending, Completed, and Overdue homework statuses.
+- Dashboard homework sorting and progress indicators.
+
+### Planned Improvements
+
+- Dynamic study streak counter.
+- Additional dashboard insights.
+- Improved testing and documentation.
+- Further UI and usability improvements.
 
 ## Security
 
 - Keep `.env` out of version control.
-- Never commit Google OAuth secrets or email passwords.
-- Use environment variables for credentials.
-- Configure production authentication and email delivery before deployment.
+- Never commit OAuth credentials, access tokens, or passwords.
+- Use environment variables for sensitive configuration.
+- Protect user-specific records through authentication and authorization.
+- Configure production OAuth credentials and secure deployment settings before deployment.
 
 ## Project Purpose
 
-This project is being developed as a learning project to practice Laravel development, authentication, UI design, and database-backed student productivity features.
+This project is being developed as a practical Laravel learning project to implement authentication, third-party API integration, database operations, AJAX interactions, and dynamic dashboard functionality.
+
+The application is designed for a focused student productivity use case.

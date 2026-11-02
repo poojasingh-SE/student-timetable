@@ -71,7 +71,46 @@ class GoogleAuthController extends Controller
     {
         return Socialite::driver('google')
             ->redirectUrl(route('google.link.callback'))
+            ->scopes([
+                'openid',
+                'profile',
+                'email',
+                'https://www.googleapis.com/auth/calendar.events.readonly',
+            ])
+            ->with([
+                'access_type' => 'offline',
+                'prompt' => 'consent',
+                'include_granted_scopes' => 'true',
+            ])
             ->redirect();
+    }
+
+    public function linkCallback()
+    {
+        $googleUser = Socialite::driver('google')
+            ->redirectUrl(route('google.link.callback'))
+            ->user();
+
+        $user = auth()->user();
+
+        $existingToken = $user->googleCalendarToken;
+
+        $user->googleCalendarToken()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'access_token' => $googleUser->token,
+
+                'refresh_token' => $googleUser->refreshToken
+                    ?: $existingToken?->refresh_token,
+
+                'expires_at' => now()->addSeconds(
+                    $googleUser->expiresIn
+                ),
+            ]
+        );
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Google Calendar connected successfully!');
     }
 }
 
