@@ -19,24 +19,31 @@
 
         <!-- Navigation -->
         <nav class="flex-1 px-4 py-4 space-y-2">
-            <a href="#" class="flex items-center gap-4 px-4 py-3 bg-blue-50 text-blue-600 rounded-xl font-medium transition-colors">
-                <i class="fa-solid fa-graduation-cap w-5 text-center"></i> Dashboard
+
+            <a href="#dashboard"
+                class="flex items-center gap-4 px-4 py-3 bg-blue-50 text-blue-600 rounded-xl font-medium transition-colors">
+                <i class="fa-solid fa-graduation-cap w-5 text-center"></i>
+                Dashboard
             </a>
-            <a href="#" class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-                <i class="fa-solid fa-table-list w-5 text-center"></i> Timetable
+
+            <a href="#timetable"
+                class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+                <i class="fa-solid fa-table-list w-5 text-center"></i>
+                Timetable
             </a>
-            <a href="#" class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-                <i class="fa-regular fa-user w-5 text-center"></i> Assignments
+
+            <a href="#homework"
+                class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+                <i class="fa-regular fa-clipboard w-5 text-center"></i>
+                Homework
             </a>
-            <a href="#" class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-                <i class="fa-solid fa-chart-simple w-5 text-center"></i> Progress
+
+            <a href="#progress"
+                class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+                <i class="fa-solid fa-chart-simple w-5 text-center"></i>
+                Progress
             </a>
-            <a href="#" class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-                <i class="fa-regular fa-calendar w-5 text-center"></i> Calendar
-            </a>
-            <a href="#" class="flex items-center gap-4 px-4 py-3 text-slate-500 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-                <i class="fa-regular fa-file-lines w-5 text-center"></i> Resources
-            </a>
+
         </nav>
 
         <!-- User Profile / Logout -->
@@ -69,7 +76,7 @@
          
 
         {{-- Dashboard Main Content --}}
-        <div class="flex-1 min-w-0 w-full">
+        <div id="dashboard" class="flex-1 min-w-0 w-full">
           <!-- Mobile Header -->
             <div class="lg:hidden flex items-center justify-between p-4 bg-white m-4 rounded-2xl shadow-sm">
             <h1 class="font-bold text-lg">Time Table Tracker</h1>
@@ -86,25 +93,6 @@
                 <div>
                     <h2 class="text-3xl font-extrabold text-blue-950 tracking-tight">Hi , {{ucfirst(Auth::user()->name) }}</h2>
                     <p class="text-slate-500 mt-1 font-medium">Track your weekly classes, tasks & progress</p>
-                </div>
-                
-                <div class="flex flex-wrap items-center gap-3">
-                    <!-- Day Dropdown -->
-                    <div class="flex items-center bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
-                        <span class="text-sm text-slate-500 mr-2 font-medium">Day:</span>
-                        <select class="bg-transparent text-sm font-semibold text-slate-800 outline-none cursor-pointer">
-                            <option>Monday</option>
-                            <option>Tuesday</option>
-                        </select>
-                    </div>
-                    <!-- Export Button -->
-                    <button class="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl shadow-sm text-sm font-semibold hover:bg-slate-50 transition-colors">
-                        <i class="fa-solid fa-download text-slate-400"></i> Export
-                    </button>
-                    <!-- Add Class Button -->
-                    <button class="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl shadow-md shadow-blue-600/20 text-sm font-semibold hover:bg-blue-700 transition-colors">
-                        <i class="fa-solid fa-plus"></i> Add Class
-                    </button>
                 </div>
             </header>
 
@@ -224,7 +212,7 @@
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 
                 <!-- ================= WEEKLY TIMETABLE (Left 2 cols) ================= -->
-                <div class="xl:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col">
+                <div id="timetable" class="xl:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col">
                     <h3 class="text-xl font-bold text-slate-900 mb-1">Weekly Timetable</h3>
 
                     <!-- Timetable Grid Container -->
@@ -281,10 +269,14 @@
                                             class="bg-blue-600 text-white rounded-lg p-2 mx-1
                                                 shadow-sm overflow-hidden flex flex-col gap-1
                                                 min-h-0 z-10 leading-tight"
-                                            style="
-                                                grid-column: {{ $dayIndex + 2 }};
-                                                grid-row: {{ $item['start_slot'] - 11 }} / span {{ $item['duration'] }};
-                                            "
+                                                style="
+                                                    grid-column: {{ $dayIndex + 2 }};
+                                                    grid-row: {{ $item['start_slot'] - 11 }} / span {{ $item['grid_span'] }};
+                                                    align-self: start;
+                                                    margin-top: {{ $item['start_offset'] * 1.6 }}px;
+                                                    height: {{ $item['duration_minutes'] * 1.6 }}px;
+                                                    box-sizing: border-box;
+                                                "
                                         >
                                             <span class="text-[10px] leading-tight">
                                                 {{ $item['event']['summary'] ?? 'Untitled Event' }}
@@ -313,7 +305,7 @@
                 <div class="flex flex-col gap-6">
                     
                     <!-- Today's Progress -->
-                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+                    <div id="progress" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
                         <h3 class="text-lg font-bold text-slate-900 w-full text-left mb-4">Today's Progress</h3>
                         
                         <!-- Circular Progress Bar -->
@@ -350,7 +342,7 @@
                     @endif
 
                     <!-- Upcoming Tasks -->
-                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                    <div id="homework" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
 
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-bold text-slate-900">Upcoming Tasks</h3>
@@ -473,26 +465,6 @@
                             @endforelse
 
                         </div>
-                    </div>
-
-                    <!-- Streak Counter -->
-                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mt-auto">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="text-orange-500 text-xl">
-                                <i class="fa-solid fa-fire"></i>
-                            </div>
-                            <h3 class="text-lg font-bold text-slate-900">Streak Counter</h3>
-                        </div>
-                        <div class="flex items-end gap-2 mb-3">
-                            <h4 class="text-2xl font-extrabold text-slate-900">7 Day Streak</h4>
-                        </div>
-                        <p class="text-xs text-slate-500 font-medium mb-3">Best streak: 12 days</p>
-                        
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-slate-100 rounded-full h-1.5 mb-2">
-                            <div class="bg-orange-500 h-1.5 rounded-full" style="width: 65%"></div>
-                        </div>
-                        <p class="text-[11px] text-slate-400 font-medium">1 day to new best!</p>
                     </div>
 
                 </div>

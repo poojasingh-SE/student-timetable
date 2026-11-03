@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\GoogleCalendarService;
 use Illuminate\View\View;
 use Carbon\Carbon;
@@ -12,26 +11,20 @@ use App\Models\HomeworkTask;
 
 class DashboardController extends Controller
 {
-    public function index(
-        GoogleCalendarService $calendarService
-    ): View 
+    public function index(GoogleCalendarService $calendarService): View 
     {
         $weeklyEvents = $calendarService->getWeeklyEvents(
             auth()->user()
         );
 
-
         // Prepare Monday to Sunday
         $weekStart = now('Asia/Kolkata')
             ->startOfWeek(Carbon::MONDAY);
     
-
         $weekDays = collect(range(0, 6))->map(
            fn ($day) => $weekStart->copy()->addDays($day)
         );
-
-        // Prepare 24 hours (12 AM to 11 PM)
-        // $timeSlots = range(0, 23);
+        
         $startHour = 6;
         $endHour = 23;
 
@@ -39,11 +32,9 @@ class DashboardController extends Controller
             $startHour * 2,
             ($endHour * 2) - 1
         ));
-        
     
         $today = now('Asia/Kolkata')->toDateString();
         
-    
         $events = array_values(array_filter(
             $weeklyEvents,
             function ($event) use ($today) {
@@ -60,24 +51,6 @@ class DashboardController extends Controller
                 return false;
             }
         ));
-
-
-        // $weeklyEventsBySlot = [];
-
-        // foreach ($weeklyEvents as $event) {
-
-        //     if (!isset($event['start']['dateTime'])) {
-        //         continue;
-        //     }
-
-        //     $startTime = Carbon::parse($event['start']['dateTime'])
-        //         ->timezone('Asia/Kolkata');
-
-        //     $date = $startTime->toDateString();
-        //     $hour = $startTime->hour;
-
-        //     $weeklyEventsBySlot[$date][$hour][] = $event;
-        // }
 
         $weeklyEventsBySlot = [];
 
@@ -99,20 +72,28 @@ class DashboardController extends Controller
 
             $date = $startTime->toDateString();
 
-            // Starting position: 30-minute slots
+            // Calculate starting 30-minute slot
             $startSlot = ($startTime->hour * 2)
-                + ($startTime->minute >= 30 ? 1 : 0);
+            + intdiv($startTime->minute, 30);
 
-            // Event duration in minutes
+            // Calculate offset within the starting slot
+            $startOffset = $startTime->minute % 30;
+
+            // Calculate actual event duration
             $durationMinutes = $startTime->diffInMinutes($endTime);
 
-            // Number of 30-minute slots occupied
-            $slotDuration = (int) ceil($durationMinutes / 30);
+            // Calculate required grid rows
+            $gridSpan = (int) ceil(
+            ($startOffset + $durationMinutes) / 30
+            );
+
 
             $weeklyEventsBySlot[$date][] = [
                 'event' => $event,
                 'start_slot' => $startSlot,
-                'duration' => $slotDuration,
+                'start_offset' => $startOffset,
+                'duration_minutes' => $durationMinutes,
+                'grid_span' => $gridSpan,
             ];
         }
 
@@ -141,7 +122,7 @@ class DashboardController extends Controller
 
         $studyHours = round($totalStudyMinutes / 60, 1);
 
-                // Get today's timed classes only
+        // Get today's timed classes only
         $todayTimedEvents = array_values(array_filter(
             $events,
             function ($event) {
