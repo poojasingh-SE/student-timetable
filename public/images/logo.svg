@@ -1,0 +1,39 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <defs>
+    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#5B21B6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Calendar -->
+  <rect x="35" y="55" width="170" height="145" rx="20"
+        fill="url(#purple)"/>
+  <path d="M35 85 Q35 55 55 55 H185 Q205 55 205 85 V100 H35Z"
+        fill="#A78BFA"/>
+
+  <!-- Calendar rings -->
+  <path d="M80 42 V70 M160 42 V70"
+        stroke="#5B21B6" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Calendar check -->
+  <circle cx="120" cy="145" r="36" fill="white"/>
+  <path d="M101 145 L114 158 L141 128"
+        fill="none" stroke="#7C3AED" stroke-width="9"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Clock -->
+  <circle cx="181" cy="183" r="35" fill="#FBBF24"
+          stroke="white" stroke-width="7"/>
+  <path d="M181 162 V184 L196 194"
+        fill="none" stroke="#5B21B6" stroke-width="6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Graduation cap -->
+  <path d="M48 43 L105 18 L162 43 L105 68 Z"
+        fill="#312E81"/>
+  <path d="M145 50 V76"
+        stroke="#FBBF24" stroke-width="5"/>
+  <circle cx="145" cy="79" r="5" fill="#FBBF24"/>
+</svg>

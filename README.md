@@ -2,7 +2,11 @@
 
 A student-focused web application designed to organize study schedules, track homework, and monitor academic progress.
 
-![Dashboard Preview](./public/images/demo.PNG)
+
+<p align="center">
+  <img src="./public/images/demo.PNG" width="500" height="250" alt="Demo Preview">
+  <img src="./public/images/dashboard.PNG" width="500" height="250" alt="Dashboard Preview">
+</p>
 
 ## Features
 
@@ -15,6 +19,8 @@ A student-focused web application designed to organize study schedules, track ho
 - Responsive dashboard with sidebar and summary cards.
 - Dynamic weekly timetable fetched from Google Calendar.
 - Today's scheduled classes and events.
+- Conditional Google Calendar connection button based on connection status.
+- Informative messages when Google Calendar is not connected or no events are scheduled.
 - Daily class completion tracking.
 - Study progress overview.
 
@@ -29,8 +35,10 @@ A student-focused web application designed to organize study schedules, track ho
 
 ### User Interface
 - Responsive layout using Tailwind CSS.
+- Updated application branding and custom logo.
+- Improved typography and dashboard styling.
 - Interactive components using JavaScript.
-- Dynamic dashboard data using Laravel Blade.
+- Dynamic dashboard data using Laravel Blade
 
 ## Tech Stack
 
@@ -155,6 +163,7 @@ The project currently includes:
 - AJAX-based homework completion status updates.
 - Pending, Completed, and Overdue homework statuses.
 - Dashboard homework sorting and progress indicators.
+- Updated dashboard UI, branding, logo, and typography.
 
 ### Planned Improvements
 

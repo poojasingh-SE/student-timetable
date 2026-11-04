@@ -137,338 +137,373 @@
             <!-- Google Calendar Events -->
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-6">
 
-            <h3 class="text-xl font-bold text-slate-900 mb-4">
+                 <h3 class="text-xl font-bold text-slate-900 mb-4">
                 Today's Google Calendar Events
-            </h3>
-            @forelse($events as $event)
+                 </h3>
+                 @if(!$isCalendarConnected)
 
-                @php
-                    $isTimedEvent = isset($event['start']['dateTime'])
-                        && isset($event['end']['dateTime']);
+                    <div class="text-center py-6">
+                        <p class="text-sm text-slate-500 mb-4">
+                            Connect your Google Calendar to view your timetable and events.
+                        </p>
 
-                    $isCompleted = $isTimedEvent
-                        && in_array($event['id'], $completedEventIds);
-                @endphp
+                        <a href="{{ route('google.link') }}"
+                        class="inline-flex items-center px-5 py-2.5
+                                bg-blue-600 text-white text-sm font-semibold
+                                rounded-xl hover:bg-blue-700 transition">
+                            Connect Google Calendar
+                        </a>
+                    </div>
 
-                <div class="flex items-center justify-between p-4 mb-3 bg-blue-50 rounded-xl">
+                @else
+                @forelse($events as $event)
 
-                    <div>
-                        <h4 class="font-semibold text-slate-900">
-                            {{ $event['summary'] ?? 'Untitled Event' }}
-                        </h4>
+                    @php
+                        $isTimedEvent = isset($event['start']['dateTime'])
+                            && isset($event['end']['dateTime']);
+
+                        $isCompleted = $isTimedEvent
+                            && in_array($event['id'], $completedEventIds);
+                    @endphp
+
+                    <div class="flex items-center justify-between p-4 mb-3 bg-blue-50 rounded-xl">
+
+                        <div>
+                            <h4 class="font-semibold text-slate-900">
+                                {{ $event['summary'] ?? 'Untitled Event' }}
+                            </h4>
+
+                            @if($isTimedEvent)
+                                <p class="text-sm text-slate-500">
+                                    {{ \Carbon\Carbon::parse($event['start']['dateTime'])->setTimezone('Asia/Kolkata')->format('h:i A') }}
+                                    -
+                                    {{ \Carbon\Carbon::parse($event['end']['dateTime'])->setTimezone('Asia/Kolkata')->format('h:i A') }}
+                                </p>
+                            @else
+                                <p class="text-sm text-slate-500">All day</p>
+                            @endif
+                        </div>
 
                         @if($isTimedEvent)
-                            <p class="text-sm text-slate-500">
-                                {{ \Carbon\Carbon::parse($event['start']['dateTime'])->setTimezone('Asia/Kolkata')->format('h:i A') }}
-                                -
-                                {{ \Carbon\Carbon::parse($event['end']['dateTime'])->setTimezone('Asia/Kolkata')->format('h:i A') }}
-                            </p>
+
+                            <form method="POST"
+                                action="{{ route('classes.complete', $event['id']) }}">
+
+                                @csrf
+
+                                <button type="submit"
+                                    class="text-xs font-semibold px-3 py-2 rounded-full
+                                    {{ $isCompleted
+                                        ? 'text-green-700 bg-green-100'
+                                        : 'text-blue-700 bg-blue-100 hover:bg-blue-200' }}">
+
+                                    {{ $isCompleted ? 'Completed ✓' : 'Mark as Completed' }}
+
+                                </button>
+
+                            </form>
+
                         @else
-                            <p class="text-sm text-slate-500">All day</p>
+
+                            <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
+                                All Day Event
+                            </span>
+
+                        @endif
+
+                    </div>
+
+                    @empty
+
+                    <p class="text-sm text-slate-500">
+                        No Google Calendar events scheduled for today.
+                    </p>
+
+                @endforelse
+                @endif
+                </div>
+
+
+                <!-- Main Content Grid (Timetable & Right Sidebar) -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    
+                    <!-- ================= WEEKLY TIMETABLE (Left 2 cols) ================= -->
+                    <div id="timetable" class="xl:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col">
+                        <h3 class="text-xl font-bold text-slate-900 mb-1">Weekly Timetable</h3>
+                        @if(!$isCalendarConnected)
+
+                            <div class="text-center py-10">
+                                <p class="text-sm text-slate-500 mb-4">
+                                Connect Google Calendar using the button above
+                                to view your weekly timetable.
+
+                                </p>
+                            </div>
+
+                        @else
+
+                            @if(empty($weeklyEvents))
+                                <p class="text-sm text-slate-500 py-3">
+                                    No events scheduled for this week.
+                                </p>
+                            @endif
+
+                        <!-- Timetable Grid Container -->
+                        <div class="overflow-x-auto custom-scroll flex-1">
+                            <div class="min-w-[700px]">
+                                <!-- Days Header -->
+
+                                <div class="grid grid-cols-[60px_repeat(7,1fr)] gap-2 mb-2 text-center text-sm font-semibold text-slate-600">
+                                    <div class="text-left text-xs text-slate-400 pt-2 font-medium"></div>
+
+                                    @foreach ($weekDays as $day)
+                                        <div class="py-2">
+                                            <span>{{ strtoupper($day->format('D')) }}</span>
+                                            <span class="block text-xs text-slate-400">
+                                                {{ $day->format('d') }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                
+                                <!-- Weekly Calendar Grid -->
+                                <div
+                                    class="grid gap-0"
+                                    style="
+                                        grid-template-columns: 60px repeat(7, minmax(90px, 1fr));
+                                        grid-template-rows: repeat(34, 48px);">
+                                    <!-- Time Labels and Empty Calendar Cells -->
+                                    @foreach ($timeSlots as $slot)
+                                        <div
+                                            class="text-[10px] text-slate-500 font-semibold flex items-center"
+                                            style="grid-column: 1; grid-row: {{ $loop->iteration }};">
+                                            {{ \Carbon\Carbon::createFromTime(
+                                                intdiv($slot, 2),
+                                                ($slot % 2) * 30
+                                            )->format('h:i A') }}
+                                        </div>
+
+                                        @foreach ($weekDays as $day)
+                                            <div
+                                                class="border-b border-l border-slate-100"
+                                                style="
+                                                    grid-column: {{ $loop->iteration + 1 }};
+                                                    grid-row: {{ $loop->parent->iteration }};
+                                                "
+                                            ></div>
+                                        @endforeach
+                                    @endforeach
+
+                                    <!-- Google Calendar Events -->
+                                    @foreach ($weekDays as $dayIndex => $day)
+                                        @foreach ($weeklyEventsBySlot[$day->toDateString()] ?? [] as $item)
+                                            <div
+                                                class="bg-blue-600 text-white rounded-lg p-2 mx-1
+                                                    shadow-sm overflow-hidden flex flex-col gap-1
+                                                    min-h-0 z-10 leading-tight"
+                                                    style="
+                                                        grid-column: {{ $dayIndex + 2 }};
+                                                        grid-row: {{ $item['start_slot'] - 11 }} / span {{ $item['grid_span'] }};
+                                                        align-self: start;
+                                                        margin-top: {{ $item['start_offset'] * 1.6 }}px;
+                                                        height: {{ $item['duration_minutes'] * 1.6 }}px;
+                                                        box-sizing: border-box;
+                                                    "
+                                            >
+                                                <span class="text-[10px] leading-tight">
+                                                    {{ $item['event']['summary'] ?? 'Untitled Event' }}
+                                                </span>
+
+                                                <span class="text-[10px]">
+                                                    {{ \Carbon\Carbon::parse(
+                                                        $item['event']['start']['dateTime']
+                                                    )->timezone('Asia/Kolkata')->format('h:i A') }}
+                                                    -
+                                                    {{ \Carbon\Carbon::parse(
+                                                        $item['event']['end']['dateTime']
+                                                    )->timezone('Asia/Kolkata')->format('h:i A') }}
+                                                </span>
+                                            </div>
+                                        @endforeach
+                                    @endforeach
+                                </div>
+
+
+                            </div>
+                        </div>
                         @endif
                     </div>
 
-                    @if($isTimedEvent)
 
-                        <form method="POST"
-                            action="{{ route('classes.complete', $event['id']) }}">
-
-                            @csrf
-
-                            <button type="submit"
-                                class="text-xs font-semibold px-3 py-2 rounded-full
-                                {{ $isCompleted
-                                    ? 'text-green-700 bg-green-100'
-                                    : 'text-blue-700 bg-blue-100 hover:bg-blue-200' }}">
-
-                                {{ $isCompleted ? 'Completed ✓' : 'Mark as Completed' }}
-
-                            </button>
-
-                        </form>
-
-                    @else
-
-                        <span class="text-xs font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
-                            All Day Event
-                        </span>
-
-                    @endif
-
-                </div>
-
-                @empty
-
-                <p class="text-sm text-slate-500">
-                    No Google Calendar events scheduled for today.
-                </p>
-
-                @endforelse
-
-            </div>
-
-
-            <!-- Main Content Grid (Timetable & Right Sidebar) -->
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                
-                <!-- ================= WEEKLY TIMETABLE (Left 2 cols) ================= -->
-                <div id="timetable" class="xl:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col">
-                    <h3 class="text-xl font-bold text-slate-900 mb-1">Weekly Timetable</h3>
-
-                    <!-- Timetable Grid Container -->
-                    <div class="overflow-x-auto custom-scroll flex-1">
-                        <div class="min-w-[700px]">
-                            <!-- Days Header -->
-
-                            <div class="grid grid-cols-[60px_repeat(7,1fr)] gap-2 mb-2 text-center text-sm font-semibold text-slate-600">
-                                <div class="text-left text-xs text-slate-400 pt-2 font-medium"></div>
-
-                                @foreach ($weekDays as $day)
-                                    <div class="py-2">
-                                        <span>{{ strtoupper($day->format('D')) }}</span>
-                                        <span class="block text-xs text-slate-400">
-                                            {{ $day->format('d') }}
-                                        </span>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            
-                            <!-- Weekly Calendar Grid -->
-                            <div
-                                class="grid gap-0"
-                                style="
-                                    grid-template-columns: 60px repeat(7, minmax(90px, 1fr));
-                                    grid-template-rows: repeat(34, 48px);">
-                                <!-- Time Labels and Empty Calendar Cells -->
-                                @foreach ($timeSlots as $slot)
-                                    <div
-                                        class="text-[10px] text-slate-500 font-semibold flex items-center"
-                                        style="grid-column: 1; grid-row: {{ $loop->iteration }};">
-                                        {{ \Carbon\Carbon::createFromTime(
-                                            intdiv($slot, 2),
-                                            ($slot % 2) * 30
-                                        )->format('h:i A') }}
-                                    </div>
-
-                                    @foreach ($weekDays as $day)
-                                        <div
-                                            class="border-b border-l border-slate-100"
-                                            style="
-                                                grid-column: {{ $loop->iteration + 1 }};
-                                                grid-row: {{ $loop->parent->iteration }};
-                                            "
-                                        ></div>
-                                    @endforeach
-                                @endforeach
-
-                                <!-- Google Calendar Events -->
-                                @foreach ($weekDays as $dayIndex => $day)
-                                    @foreach ($weeklyEventsBySlot[$day->toDateString()] ?? [] as $item)
-                                        <div
-                                            class="bg-blue-600 text-white rounded-lg p-2 mx-1
-                                                shadow-sm overflow-hidden flex flex-col gap-1
-                                                min-h-0 z-10 leading-tight"
-                                                style="
-                                                    grid-column: {{ $dayIndex + 2 }};
-                                                    grid-row: {{ $item['start_slot'] - 11 }} / span {{ $item['grid_span'] }};
-                                                    align-self: start;
-                                                    margin-top: {{ $item['start_offset'] * 1.6 }}px;
-                                                    height: {{ $item['duration_minutes'] * 1.6 }}px;
-                                                    box-sizing: border-box;
-                                                "
-                                        >
-                                            <span class="text-[10px] leading-tight">
-                                                {{ $item['event']['summary'] ?? 'Untitled Event' }}
-                                            </span>
-
-                                            <span class="text-[10px]">
-                                                {{ \Carbon\Carbon::parse(
-                                                    $item['event']['start']['dateTime']
-                                                )->timezone('Asia/Kolkata')->format('h:i A') }}
-                                                -
-                                                {{ \Carbon\Carbon::parse(
-                                                    $item['event']['end']['dateTime']
-                                                )->timezone('Asia/Kolkata')->format('h:i A') }}
-                                            </span>
-                                        </div>
-                                    @endforeach
-                                @endforeach
-                            </div>
-
-
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ================= RIGHT SIDEBAR ================= -->
-                <div class="flex flex-col gap-6">
-                    
-                    <!-- Today's Progress -->
-                    <div id="progress" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
-                        <h3 class="text-lg font-bold text-slate-900 w-full text-left mb-4">Today's Progress</h3>
+                    <!-- ================= RIGHT SIDEBAR ================= -->
+                    <div class="flex flex-col gap-6">
                         
-                        <!-- Circular Progress Bar -->
-                        <div class="relative w-40 h-40 mb-4">
-                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                <circle class="text-slate-100 stroke-current" stroke-width="12" cx="50" cy="50" r="40" fill="transparent"></circle>
-                                <circle class="text-blue-600 stroke-current" stroke-width="12" stroke-linecap="round" cx="50" cy="50" r="40" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="{{ 251.2 - (251.2 * $progressPercentage / 100) }}"></circle>
-                            </svg>
-                            <div class="absolute inset-0 flex items-center justify-center flex-col">
-                                <span class="text-3xl font-extrabold text-blue-900">{{$progressPercentage }}%</span>
+                        <!-- Today's Progress -->
+                        <div id="progress" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+                            <h3 class="text-lg font-bold text-slate-900 w-full text-left mb-4">Today's Progress</h3>
+                            
+                            <!-- Circular Progress Bar -->
+                            <div class="relative w-40 h-40 mb-4">
+                                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                    <circle class="text-slate-100 stroke-current" stroke-width="12" cx="50" cy="50" r="40" fill="transparent"></circle>
+                                    <circle class="text-blue-600 stroke-current" stroke-width="12" stroke-linecap="round" cx="50" cy="50" r="40" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="{{ 251.2 - (251.2 * $progressPercentage / 100) }}"></circle>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                    <span class="text-3xl font-extrabold text-blue-900">{{$progressPercentage }}%</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-slate-500 font-medium">
+                                Completed {{ $completedClasses }} / {{ $totalTodayClasses }} classes
+                            </p>
+                        </div>
+
+                        {{-- Success Message --}}
+                        @if(session('success'))
+                            <div class="mb-4 p-3 rounded-lg bg-emerald-100 text-emerald-700 text-sm">
+                                {{ session('success') }}
+                            </div>
+                        @endif
+
+                        {{-- Validation Errors --}}
+                        @if($errors->any())
+                            <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-700 text-sm">
+                                <ul class="list-disc pl-5">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <!-- Upcoming Tasks -->
+                        <div id="homework" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-slate-900">Upcoming Tasks</h3>
+                                <button
+                                    type="button"
+                                    onclick="document.getElementById('homeworkModal').classList.remove('hidden')"
+                                    class="text-sm text-blue-600 font-semibold hover:text-blue-700">
+                                    + Add
+                                </button>
+                            </div>
+
+                            <div class="space-y-5">
+
+                                @forelse($homeworkTasks as $task)
+                                
+                                @php
+                                    $isCompleted = !is_null($task->completed_at);
+
+                                    $isOverdue = !$isCompleted && $task->due_at->isPast();
+                                @endphp
+
+                                    <div class="flex items-start gap-3">
+
+                                        
+                                        <div class="mt-1">
+                                                <input
+                                                    type="checkbox"
+                                                    class="homework-checkbox w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer"
+                                                    data-url="{{ route('homework.toggleComplete', $task->id) }}"
+                                                    data-task-id="{{ $task->id }}"
+                                                    @checked($isCompleted)
+                                                >
+                                            </div>
+                                        
+
+                                        <div class="flex-1">
+                                        <button
+                                            type="button"
+                                            onclick="openEditHomework(
+                                                {{ $task->id }},
+                                                @js($task->title),
+                                                @js($task->subject),
+                                                @js($task->description),
+                                                '{{ $task->due_at->format('Y-m-d') }}',
+                                                '{{ $task->due_at->format('H:i') }}'
+                                            )"
+                                            class="text-xs text-blue-600 font-semibold hover:text-blue-700">
+                                            Edit
+                                        </button>
+
+                                        <form
+                                                action="{{ route('homework.destroy', $task->id) }}"
+                                                method="POST"
+                                                onsubmit="return confirm('Are you sure you want to delete this homework?')"
+                                                class="inline-block ml-2"
+                                            >
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <button
+                                                    type="submit"
+                                                    class="text-xs text-red-600 font-semibold hover:text-red-700"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </form>
+
+                                            <p class="text-sm font-semibold text-slate-800 leading-tight">
+                                                {{ $task->title }}
+                                            </p>
+
+                                            <div class="flex items-center flex-wrap gap-2 mt-1.5">
+
+                                                <span class="text-xs text-slate-500 font-medium">
+                                                    {{ $task->subject }}
+                                                </span>
+
+                                                <span class="text-xs text-slate-500 font-medium">
+                                                    Due {{ $task->due_at->isToday()
+                                                        ? 'today'
+                                                        : ($task->due_at->isTomorrow()
+                                                            ? 'tomorrow'
+                                                            : $task->due_at->format('d M'))
+                                                    }}
+                                                    • {{ $task->due_at->format('h:i A') }}
+                                                </span>
+
+                                                @if($isCompleted)
+                                                    <span
+                                                        data-status-id="{{ $task->id }}"
+                                                        class="homework-status text-[10px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full font-bold">
+                                                        Completed
+                                                    </span>
+
+                                                @elseif($isOverdue)
+                                                    <span
+                                                        data-status-id="{{ $task->id }}"
+                                                        class="homework-status text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">
+                                                        Overdue
+                                                    </span>
+
+                                                @else
+                                                    <span
+                                                        data-status-id="{{ $task->id }}"
+                                                        class="homework-status text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold">
+                                                        Pending
+                                                    </span>
+                                                @endif
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                @empty
+
+                                    <p class="text-sm text-slate-500 text-center py-4">
+                                        No homework tasks added yet.
+                                    </p>
+
+                                @endforelse
+
                             </div>
                         </div>
-                        <p class="text-sm text-slate-500 font-medium">
-                             Completed {{ $completedClasses }} / {{ $totalTodayClasses }} classes
-                        </p>
+
                     </div>
-
-                    {{-- Success Message --}}
-                    @if(session('success'))
-                        <div class="mb-4 p-3 rounded-lg bg-emerald-100 text-emerald-700 text-sm">
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
-                    {{-- Validation Errors --}}
-                    @if($errors->any())
-                        <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-700 text-sm">
-                            <ul class="list-disc pl-5">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <!-- Upcoming Tasks -->
-                    <div id="homework" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-bold text-slate-900">Upcoming Tasks</h3>
-                            <button
-                                type="button"
-                                onclick="document.getElementById('homeworkModal').classList.remove('hidden')"
-                                class="text-sm text-blue-600 font-semibold hover:text-blue-700">
-                                + Add
-                            </button>
-                        </div>
-
-                        <div class="space-y-5">
-
-                            @forelse($homeworkTasks as $task)
-                              
-                            @php
-                                $isCompleted = !is_null($task->completed_at);
-
-                                $isOverdue = !$isCompleted && $task->due_at->isPast();
-                            @endphp
-
-                                <div class="flex items-start gap-3">
-
-                                    
-                                    <div class="mt-1">
-                                            <input
-                                                type="checkbox"
-                                                class="homework-checkbox w-4 h-4 rounded border-slate-300 text-blue-600 cursor-pointer"
-                                                data-url="{{ route('homework.toggleComplete', $task->id) }}"
-                                                data-task-id="{{ $task->id }}"
-                                                @checked($isCompleted)
-                                            >
-                                        </div>
-                                    
-
-                                    <div class="flex-1">
-                                    <button
-                                        type="button"
-                                        onclick="openEditHomework(
-                                            {{ $task->id }},
-                                            @js($task->title),
-                                            @js($task->subject),
-                                            @js($task->description),
-                                            '{{ $task->due_at->format('Y-m-d') }}',
-                                            '{{ $task->due_at->format('H:i') }}'
-                                        )"
-                                        class="text-xs text-blue-600 font-semibold hover:text-blue-700">
-                                        Edit
-                                    </button>
-
-                                    <form
-                                            action="{{ route('homework.destroy', $task->id) }}"
-                                            method="POST"
-                                            onsubmit="return confirm('Are you sure you want to delete this homework?')"
-                                            class="inline-block ml-2"
-                                        >
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button
-                                                type="submit"
-                                                class="text-xs text-red-600 font-semibold hover:text-red-700"
-                                            >
-                                                Delete
-                                            </button>
-                                        </form>
-
-                                        <p class="text-sm font-semibold text-slate-800 leading-tight">
-                                            {{ $task->title }}
-                                        </p>
-
-                                        <div class="flex items-center flex-wrap gap-2 mt-1.5">
-
-                                            <span class="text-xs text-slate-500 font-medium">
-                                                {{ $task->subject }}
-                                            </span>
-
-                                            <span class="text-xs text-slate-500 font-medium">
-                                                Due {{ $task->due_at->isToday()
-                                                    ? 'today'
-                                                    : ($task->due_at->isTomorrow()
-                                                        ? 'tomorrow'
-                                                        : $task->due_at->format('d M'))
-                                                }}
-                                                • {{ $task->due_at->format('h:i A') }}
-                                            </span>
-
-                                            @if($isCompleted)
-                                                <span
-                                                    data-status-id="{{ $task->id }}"
-                                                    class="homework-status text-[10px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full font-bold">
-                                                    Completed
-                                                </span>
-
-                                            @elseif($isOverdue)
-                                                <span
-                                                    data-status-id="{{ $task->id }}"
-                                                    class="homework-status text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">
-                                                    Overdue
-                                                </span>
-
-                                            @else
-                                                <span
-                                                    data-status-id="{{ $task->id }}"
-                                                    class="homework-status text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold">
-                                                    Pending
-                                                </span>
-                                            @endif
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                            @empty
-
-                                <p class="text-sm text-slate-500 text-center py-4">
-                                    No homework tasks added yet.
-                                </p>
-
-                            @endforelse
-
-                        </div>
-                    </div>
-
                 </div>
-            </div>
         </div>
 
         </div>

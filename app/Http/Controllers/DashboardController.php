@@ -13,9 +13,15 @@ class DashboardController extends Controller
 {
     public function index(GoogleCalendarService $calendarService): View 
     {
-        $weeklyEvents = $calendarService->getWeeklyEvents(
-            auth()->user()
-        );
+        $user = auth()->user();
+
+        #Check google calendar connection
+        $isCalendarConnected = $user->googleCalendarToken()->exists();
+
+        // Fetch events only when calendar is connected
+        $weeklyEvents = $isCalendarConnected 
+             ? $calendarService->getWeeklyEvents($user) 
+             : []   ;
 
         // Prepare Monday to Sunday
         $weekStart = now('Asia/Kolkata')
@@ -170,7 +176,8 @@ class DashboardController extends Controller
             'completedEventIds',
             'totalTodayClasses',
             'completedClasses',
-            'progressPercentage','homeworkTasks')
+            'progressPercentage',
+            'homeworkTasks','isCalendarConnected')
         );
     }
 }

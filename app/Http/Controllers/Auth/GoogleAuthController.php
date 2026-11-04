@@ -60,7 +60,8 @@ class GoogleAuthController extends Controller
         }
     
         // Laravel mein login session create karo
-        Auth::login($user);
+        Auth::login($user); #normal login and session based 
+        Auth::login($user, true); #persistent login, Laravel remember cookie generate karega.
         request()->session()->regenerate();
     
         return redirect()->intended(route('dashboard'));

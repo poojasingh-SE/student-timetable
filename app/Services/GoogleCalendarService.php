@@ -22,11 +22,8 @@ class GoogleCalendarService
     {
         $token = $user->googleCalendarToken;
 
-        if (!$token) {
-            throw new RuntimeException(
-                'Google Calendar is not connected.'
-            );
-        }
+        if (!$token) return [];
+        
 
         // Get a valid access token
         $accessToken = $this->getValidAccessToken($token);
