@@ -92,6 +92,13 @@ class GoogleCalendarService
         );
 
         if ($response->failed()) {
+            
+            logger()->error('Google Token Refresh Failed', [
+                'status' => $response->status(),
+                'error' => $response->json('error'),
+                'description' => $response->json('error_description'),
+            ]);
+
             throw new RuntimeException(
                 'Unable to refresh Google access token.'
             );

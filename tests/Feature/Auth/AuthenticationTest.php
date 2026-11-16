@@ -22,7 +22,20 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->post('/login', [
-            'email' => $user->email,
+            'email_or_phone_number' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_users_can_authenticate_using_phone_number(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->post('/login', [
+            'email_or_phone_number' => $user->phone_number,
             'password' => 'password',
         ]);
 
