@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('class_completions', function (Blueprint $table) {
             $table->id();
-    
+
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
-    
+
             $table->string('google_event_id')->unique();
-    
+
             $table->timestamp('completed_at')->nullable();
-    
+
             $table->timestamps();
         });
     }

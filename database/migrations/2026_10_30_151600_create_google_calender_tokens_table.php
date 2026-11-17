@@ -18,11 +18,11 @@ return new class extends Migration
                 ->unique()
                 ->constrained()
                 ->cascadeOnDelete();
-    
+
             $table->text('access_token');
             $table->text('refresh_token')->nullable();
             $table->timestamp('expires_at')->nullable();
-    
+
             $table->timestamps();
         });
     }

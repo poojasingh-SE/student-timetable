@@ -7,42 +7,78 @@ on:
 
   pull_request:
     branches:
-      - master  
+      - master
 
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      # 1. Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      # 2. Setup PHP
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           extensions: mbstring, pdo_sqlite, sqlite3
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist
-      
+
+      # 3. Cache Composer dependencies
+      - name: Cache Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      # 4. Install PHP dependencies
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      # 5. Check Laravel code formatting
+      - name: Check Code Formatting (Laravel Pint)
+        run: vendor/bin/pint --test
+
+      # 6. Setup Node.js with npm cache
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: npm
+          cache-dependency-path: package-lock.json
 
-      - name: Install frontend dependencies
+      # 7. Install frontend dependencies
+      - name: Install Frontend Dependencies
         run: npm ci
 
-      - name: Build frontend assets
+      # 8. Build frontend assets
+      - name: Build Frontend Assets
         run: npm run build
+      # 9. Directory Permission
+      - name: Set Directory Permissions
+        run: chmod -R 775 storage bootstrap/cache
 
-      - name: Prepare environment
+
+      # 10. Prepare environment
+      - name: Prepare Environment
         run: |
           cp .env.example .env
           php artisan key:generate
           touch database/database.sqlite
-      - name: Configure database
-        run: echo "DB_CONNECTION=sqlite" >> .env
-      - name: Run migrations
+
+      # 11. Configure SQLite
+      - name: Configure SQLite Database
+        run: |
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+          sed -i '/^DB_DATABASE=/d' .env
+
+      # 12. Run migrations
+      - name: Run Migrations
         run: php artisan migrate --force
-      - name: Run tests
+
+      # 13. Run automated tests
+      - name: Run Tests
         run: php artisan test

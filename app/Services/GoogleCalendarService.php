@@ -3,10 +3,9 @@
 namespace App\Services;
 
 use App\Models\User;
-use RuntimeException;
-use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Http;
+use RuntimeException;
 
 class GoogleCalendarService
 {
@@ -18,49 +17,50 @@ class GoogleCalendarService
         //
     }
 
-    public function getWeeklyEvents(User $user): array 
+    public function getWeeklyEvents(User $user): array
     {
         $token = $user->googleCalendarToken;
 
-        if (!$token) return [];
-        
+        if (! $token) {
+            return [];
+        }
 
         // Get a valid access token
         $accessToken = $this->getValidAccessToken($token);
 
         // Define today's date range in Indian timezone
         $today = now('Asia/Kolkata');
-        #$today->copy() make separate copy of original date
+        // $today->copy() make separate copy of original date
 
         $start = $today->copy()->startOfWeek(Carbon::MONDAY);
         $end = $today->copy()->endOfWeek(Carbon::SUNDAY);
 
-        #toRfc3339String  RFC 3339 format " 2026-10-26T00:00:00+05:30" convert carbon date onject into date time string as in google calendar Api do
+        // toRfc3339String  RFC 3339 format " 2026-10-26T00:00:00+05:30" convert carbon date onject into date time string as in google calendar Api do
 
         $timeMin = $start->toRfc3339String();
         $timeMax = $end->toRfc3339String();
 
         $response = Http::withToken($accessToken)
-        ->get(
-            'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-            [
-                'timeMin' => $timeMin,
-                'timeMax' => $timeMax,
-                'singleEvents' => 'true', #recurring events ko individual events mein expand karega.
-                'orderBy' => 'startTime', #start time ke according sort karega
-                'maxResults' => 100,
-            ]
-        );
+            ->get(
+                'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+                [
+                    'timeMin' => $timeMin,
+                    'timeMax' => $timeMax,
+                    'singleEvents' => 'true', // recurring events ko individual events mein expand karega.
+                    'orderBy' => 'startTime', // start time ke according sort karega
+                    'maxResults' => 100,
+                ]
+            );
 
         if ($response->failed()) {
             throw new RuntimeException(
-                'Google API Error: HTTP ' .
-                $response->status() . ' - ' .
+                'Google API Error: HTTP '.
+                $response->status().' - '.
                 $response->body()
             );
         }
-        return $response->json('items', []);
 
+        return $response->json('items', []);
 
     }
 
@@ -74,7 +74,7 @@ class GoogleCalendarService
             return $token->access_token;
         }
 
-        if (!$token->refresh_token) {
+        if (! $token->refresh_token) {
             throw new RuntimeException(
                 'Google refresh token is missing.'
             );
@@ -92,7 +92,7 @@ class GoogleCalendarService
         );
 
         if ($response->failed()) {
-            
+
             logger()->error('Google Token Refresh Failed', [
                 'status' => $response->status(),
                 'error' => $response->json('error'),

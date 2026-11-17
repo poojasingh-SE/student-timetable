@@ -2,35 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\GoogleCalendarService;
-use Illuminate\View\View;
-use Carbon\Carbon;
 use App\Models\ClassCompletion;
 use App\Models\HomeworkTask;
-
+use App\Services\GoogleCalendarService;
+use Carbon\Carbon;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(GoogleCalendarService $calendarService): View 
+    public function index(GoogleCalendarService $calendarService): View
     {
         $user = auth()->user();
 
-        #Check google calendar connection
+        // Check google calendar connection
         $isCalendarConnected = $user->googleCalendarToken()->exists();
 
         // Fetch events only when calendar is connected
-        $weeklyEvents = $isCalendarConnected 
-             ? $calendarService->getWeeklyEvents($user) 
-             : []   ;
+        $weeklyEvents = $isCalendarConnected
+             ? $calendarService->getWeeklyEvents($user)
+             : [];
 
         // Prepare Monday to Sunday
         $weekStart = now('Asia/Kolkata')
             ->startOfWeek(Carbon::MONDAY);
-    
+
         $weekDays = collect(range(0, 6))->map(
-           fn ($day) => $weekStart->copy()->addDays($day)
+            fn ($day) => $weekStart->copy()->addDays($day)
         );
-        
+
         $startHour = 6;
         $endHour = 23;
 
@@ -38,22 +37,22 @@ class DashboardController extends Controller
             $startHour * 2,
             ($endHour * 2) - 1
         ));
-    
+
         $today = now('Asia/Kolkata')->toDateString();
-        
+
         $events = array_values(array_filter(
             $weeklyEvents,
             function ($event) use ($today) {
                 if (isset($event['start']['date'])) {
                     return $event['start']['date'] === $today;
                 }
-    
+
                 if (isset($event['start']['dateTime'])) {
-                    return \Carbon\Carbon::parse(
+                    return Carbon::parse(
                         $event['start']['dateTime']
                     )->timezone('Asia/Kolkata')->toDateString() === $today;
                 }
-    
+
                 return false;
             }
         ));
@@ -64,8 +63,8 @@ class DashboardController extends Controller
 
             // All-day events ko abhi hourly grid se skip karenge
             if (
-                !isset($event['start']['dateTime']) ||
-                !isset($event['end']['dateTime'])
+                ! isset($event['start']['dateTime']) ||
+                ! isset($event['end']['dateTime'])
             ) {
                 continue;
             }
@@ -90,9 +89,8 @@ class DashboardController extends Controller
 
             // Calculate required grid rows
             $gridSpan = (int) ceil(
-            ($startOffset + $durationMinutes) / 30
+                ($startOffset + $durationMinutes) / 30
             );
-
 
             $weeklyEventsBySlot[$date][] = [
                 'event' => $event,
@@ -114,8 +112,8 @@ class DashboardController extends Controller
         foreach ($weeklyEvents as $event) {
 
             if (
-                !isset($event['start']['dateTime']) ||
-                !isset($event['end']['dateTime'])
+                ! isset($event['start']['dateTime']) ||
+                ! isset($event['end']['dateTime'])
             ) {
                 continue;
             }
@@ -155,29 +153,30 @@ class DashboardController extends Controller
             ? round(($completedClasses / $totalTodayClasses) * 100)
             : 0;
 
-            // Fetch upcoming homework tasks for logged-in user
-            $homeworkTasks = HomeworkTask::where('user_id', auth()->id())
-                    ->orderByRaw(
-                        'CASE
+        // Fetch upcoming homework tasks for logged-in user
+        $homeworkTasks = HomeworkTask::where('user_id', auth()->id())
+            ->orderByRaw(
+                'CASE
                             WHEN completed_at IS NULL AND due_at < ? THEN 0
                             WHEN completed_at IS NULL THEN 1
                             ELSE 2
                         END',
-                        [now('Asia/Kolkata')->toDateTimeString()]
-                    )
-                    ->orderBy('due_at', 'asc')
-                    ->take(5)
-                    ->get();    
+                [now('Asia/Kolkata')->toDateTimeString()]
+            )
+            ->orderBy('due_at', 'asc')
+            ->take(5)
+            ->get();
+
         return view(
             'dashboard',
-            compact('events', 'weeklyEvents', 'weekDays', 'timeSlots','weeklyEventsBySlot','totalClasses',
-            'todayClasses',
-            'studyHours','todayTimedEvents',
-            'completedEventIds',
-            'totalTodayClasses',
-            'completedClasses',
-            'progressPercentage',
-            'homeworkTasks','isCalendarConnected')
+            compact('events', 'weeklyEvents', 'weekDays', 'timeSlots', 'weeklyEventsBySlot', 'totalClasses',
+                'todayClasses',
+                'studyHours', 'todayTimedEvents',
+                'completedEventIds',
+                'totalTodayClasses',
+                'completedClasses',
+                'progressPercentage',
+                'homeworkTasks', 'isCalendarConnected')
         );
     }
 }

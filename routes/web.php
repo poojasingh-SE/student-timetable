@@ -1,56 +1,54 @@
 
 <?php
 
+use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\ClassCompletionController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeworkTaskController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\GoogleAuthController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ClassCompletionController;
-use App\Http\Controllers\HomeworkTaskController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/dashboard', [
-        DashboardController::class, 
-        'index'
+        DashboardController::class,
+        'index',
     ])->name('dashboard');
 
     Route::post('/classes/{eventId}/complete', [
         ClassCompletionController::class,
-        'store'
+        'store',
     ])->name('classes.complete');
 
     Route::get('/homework', [
         HomeworkTaskController::class,
-        'index'
+        'index',
     ])->name('homework.index');
 
     Route::post('/homework', [
         HomeworkTaskController::class,
-        'store'
+        'store',
     ])->name('homework.store');
 
     Route::patch('/homework/{homeworkTask}/toggle-complete', [
         HomeworkTaskController::class,
-        'toggleComplete'
+        'toggleComplete',
     ])->name('homework.toggleComplete');
 
     Route::put('/homework/{homeworkTask}', [
         HomeworkTaskController::class,
-        'update'
+        'update',
     ])->name('homework.update');
 
     Route::delete('/homework/{homeworkTask}', [
         HomeworkTaskController::class,
-        'destroy'
+        'destroy',
     ])->name('homework.destroy');
 
-        
 });
 
 Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])
@@ -59,33 +57,33 @@ Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
     ->name('google.callback');
 
-Route::middleware('auth')->group(function(){
+Route::middleware('auth')->group(function () {
 
     Route::get('/auth/google/link', [
         GoogleAuthController::class,
-        'linkRedirect'
+        'linkRedirect',
     ])->name('google.link');
-        
+
     Route::get('/auth/google/link/callback', [
         GoogleAuthController::class,
-        'linkCallback'
+        'linkCallback',
     ])->name('google.link.callback');
 
     Route::get('/profile', [
-        ProfileController::class, 
-        'edit'
+        ProfileController::class,
+        'edit',
     ])->name('profile.edit');
 
     Route::patch('/profile', [
-        ProfileController::class, 
-        'update'
+        ProfileController::class,
+        'update',
     ])->name('profile.update');
 
     Route::delete('/profile', [
-        ProfileController::class, 
-        'destroy'
+        ProfileController::class,
+        'destroy',
     ])->name('profile.destroy');
 
 });
-    
+
 require __DIR__.'/auth.php';

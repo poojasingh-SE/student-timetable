@@ -44,13 +44,12 @@ class LoginRequest extends FormRequest
         $loginInput = $this->input('email_or_phone_number');
         $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone_number';
 
-         $credentials = [
+        $credentials = [
             $fieldType => $loginInput,
             'password' => $this->input('password'),
         ];
 
         // dd($credentials);
-
 
         if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());

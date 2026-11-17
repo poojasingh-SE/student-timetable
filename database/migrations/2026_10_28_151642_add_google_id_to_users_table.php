@@ -15,7 +15,7 @@ return new class extends Migration
             if (! Schema::hasColumn('users', 'google_id')) {
                 $table->string('google_id')->nullable()->unique();
             }
-            
+
         });
     }
 
