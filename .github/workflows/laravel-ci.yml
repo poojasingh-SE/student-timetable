@@ -22,6 +22,19 @@ jobs:
           extensions: mbstring, pdo_sqlite, sqlite3
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
       - name: Prepare environment
         run: |
           cp .env.example .env
